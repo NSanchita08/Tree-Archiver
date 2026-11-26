@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Museum Tree Archive</title>
+<style>
+:root{--bg:#eef5ff;--node:#dbeafe;--dot:#c9dcf5;--card:#fff;--ink:#222;--mut:#5b6b82;--bd:#c9dcf5;--acc:#1d4ed8;--ok:#1b7a3d;--bad:#b3261e;--code:#f1f7ff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a2b;--node:#1e3a5f;--dot:#1d2f4a;--card:#16253b;--ink:#eee;--mut:#9db0cc;--bd:#2b4263;--acc:#7db3ff;--ok:#5cd08a;--bad:#ff8a80;--code:#0d1726;color-scheme:dark}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Trebuchet MS","Segoe UI",system-ui,sans-serif;background-image:radial-gradient(var(--dot) 1.2px,transparent 1.2px);background-size:22px 22px}
+main{max-width:1000px;margin:0 auto;padding:16px}
+h1{font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;margin:.2em 0;color:var(--acc);letter-spacing:-.5px}h2{font-size:1.05rem;margin:0 0 8px;color:var(--acc)}
+.sub{color:var(--mut);margin:0 0 14px}
+.card{background:var(--card);border:2px solid var(--bd);border-radius:14px;box-shadow:3px 4px 0 var(--bd);padding:14px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:700px){.grid{grid-template-columns:1fr}}
+textarea,pre{width:100%;box-sizing:border-box;background:var(--code);color:var(--ink);border:1px solid var(--bd);border-radius:6px;font:13px/1.4 ui-monospace,Menlo,Consolas,monospace;padding:8px;margin:0}
+textarea{tab-size:4;min-height:130px;resize:vertical}pre{overflow-x:auto;min-height:60px;white-space:pre}
+button{background:#2563eb;color:#fff;border:0;border-radius:8px;padding:7px 13px;margin:6px 6px 0 0;font:inherit;font-weight:600;cursor:pointer;box-shadow:0 3px 0 #1e40af}
+button.alt{background:#3b82f6;color:#fff;border:0}
+label.btn{display:inline-block;background:#3b82f6;color:#fff;border-radius:8px;padding:7px 13px;margin:6px 6px 0 0;font-weight:600;cursor:pointer;box-shadow:0 3px 0 #1e40af}
+.drop{outline:2px dashed var(--acc)}
+.msg{margin-top:8px;font-weight:600}.ok{color:var(--ok)}.bad{color:var(--bad)}
+.trav{font-family:ui-monospace,Menlo,monospace;font-size:13px;margin-top:6px;word-break:break-word}
+small{color:var(--mut)}
+button,label.btn{transition:transform .18s cubic-bezier(.3,1.5,.5,1),box-shadow .18s,filter .18s}
+button:hover,label.btn:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 5px 0 #1e40af;filter:brightness(1.1)}
+button:active,label.btn:active{transform:translateY(3px) scale(.97);box-shadow:0 0 0 #1e40af}
+.card{animation:rise .5s ease backwards}
+.msg{animation:fade .35s ease backwards}
+pre{transition:box-shadow .3s}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{opacity:0;transform:scale(.2)}to{opacity:1;transform:scale(1)}}
+.nd{transform-box:fill-box;transform-origin:center;cursor:pointer;transition:transform .22s cubic-bezier(.3,1.6,.5,1),filter .25s,opacity .25s;animation:pop .5s cubic-bezier(.3,1.6,.5,1) backwards}
+svg:has(.nd:hover) .nd:not(:hover){filter:blur(3px);opacity:.45}
+svg:has(.nd:hover) .ln{opacity:.2}
+.nd:hover{transform:scale(1.3)}
+.nd rect{transition:fill .2s,stroke-width .2s}
+.nd:hover rect{stroke-width:3;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))}
+.ln{animation:fade .6s ease backwards;transition:opacity .25s}
+@media(prefers-reduced-motion:reduce){.card,.msg,.ln{animation:none}button,label.btn{transition:none}}
+</style></head><body><main>
+<h1>🌳 Family Tree Saver</h1>
+<p class="sub">Turn a family tree into text, forget it ever existed, then bring it back exactly the same (no kids attached to the wrong branch, promise 🤞). Saved as a level-order array like <code>[A,B,C,null,D]</code>; <code>null</code> marks a missing child.</p>
+
+<div class="card"><h2>🌱 1 · Plant a tree</h2>
+<small>Type or paste an array like <code>[A,B,C,null,D]</code> (the tree builds as you type), or an edge list: first line = root, then <code>parent L|R child</code> per line. You can also import a text file below.</small>
+<textarea id="edges" spellcheck="false" placeholder="[A,B,C,null,D]"></textarea>
+<button class="alt" id="bEx1">Example: A,B,C,D</button>
+<button class="alt" id="bEx2">🎲 Random unseen tree</button>
+<div style="margin-top:8px"><small>Or import a text file: </small><input type="file" class="fin" data-t="build" accept=".txt,text/plain,.csv,.json"></div>
+<div class="msg" id="m1"></div>
+<pre id="vbuild" style="margin-top:8px">(no tree yet)</pre>
+<div style="overflow-x:auto;margin-top:8px"><svg id="blocksB" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:none"></svg></div></div>
+
+<div class="card"><h2>💾 2 · Save it, wipe it, bring it back</h2>
+<button id="bExport">📤 Export to text</button>
+<button class="alt" id="bClear">🧹 Clear memory</button>
+<button id="bRestore">🔄 Restore tree</button>
+<button id="bDownload">⬇ Download tree as .txt</button>
+<label class="btn">📂 Load .txt file<input type="file" class="fin" data-t="restore" style="display:none"></label>
+<textarea id="exp" spellcheck="false" placeholder="Array text appears here, e.g. [A,B,C,null,D] (editable)"></textarea>
+<small>😈 Be evil – break the saved text and see if we notice:</small><br>
+<button class="alt" id="dRoot">Make root null</button>
+<button class="alt" id="dBracket">Remove closing ]</button>
+<button class="alt" id="dEmpty">Insert empty entry</button>
+<button class="alt" id="dSpace">Put a space in a label</button>
+<div class="msg" id="m2"></div>
+<pre id="vexp" style="margin-top:8px">(tree built from the text above will appear here)</pre>
+<div style="overflow-x:auto;margin-top:8px"><svg id="blocksE" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:none"></svg></div></div>
+
+<div class="grid">
+<div class="card"><h2>🌳 Original</h2><pre id="vo">(none yet)</pre><div class="trav" id="to"></div></div>
+<div class="card"><h2>✨ Restored</h2><pre id="vr">(none yet)</pre><div class="trav" id="tr"></div></div>
+</div>
+<div class="card"><h2>🧱 Restored tree as blocks</h2><small>Dashed stubs mark absent children.</small><div style="overflow-x:auto"><svg id="blocks" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:none"></svg></div></div>
+<div class="card"><div class="msg" id="verdict">Build, export, clear, then restore to compare.</div>
+<button class="alt" id="bTest">✅ Run self-tests</button><pre id="tests" style="display:none"></pre></div>
+
+<p class="sub" style="text-align:center;margin-top:18px">made with way too much coffee ☕ and one all-nighter 😅 · hover a node, it zooms!</p>
+<script>
+const MAXN=2000,MAXL=64;
+class FormatError extends Error{}
+const N=(l,L=null,R=null)=>({label:l,left:L,right:R});
+function buildEdges(t){const ls=t.split("\n").map(s=>s.trim()).filter(s=>s&&!s.startsWith("#"));
+ if(!ls.length)return null;const idx={},root=N(ls[0]);idx[ls[0]]=root;chk(ls[0]);
+ for(const l of ls.slice(1)){const p=l.split(/\s+/);if(p.length!==3||!["L","R"].includes(p[1]))throw Error(`Bad edge line "${l}" – expected "parent L|R child"`);
+  const [a,s,c]=p;if(!idx[a])throw Error(`Unknown parent "${a}"`);if(idx[c])throw Error(`Duplicate label "${c}"`);chk(c);
+  const k=s==="L"?"left":"right";if(idx[a][k])throw Error(`${a} already has a ${s} child`);idx[a][k]=idx[c]=N(c);
+  if(Object.keys(idx).length>MAXN)throw Error("More than 2000 nodes")}
+ return root}
+function chk(l){if(typeof l!=="string"||l.length<1||l.length>MAXL||/[\s,\[\]"']/.test(l)||l==="null")throw Error(`Invalid label "${l}": 1-${MAXL} characters, no spaces, commas, brackets or quotes, and not "null"`)}
+function pre(r){const o=[],st=r?[r]:[];while(st.length){const n=st.pop();o.push(n.label);n.right&&st.push(n.right);n.left&&st.push(n.left)}return o}
+function ino(r){const o=[],st=[];let c=r;while(st.length||c){while(c){st.push(c);c=c.left}c=st.pop();o.push(c.label);c=c.right}return o}
+function render(r){if(!r)return"(empty tree)";const o=[],st=[[r,0,"root"]];
+ while(st.length){const[n,d,t]=st.pop();if(!n){o.push("    ".repeat(d)+t+": (none)");continue}
+  o.push("    ".repeat(d)+t+": "+n.label);st.push([n.right,d+1,"R"],[n.left,d+1,"L"])}return o.join("\n")}
+function same(a,b){const st=[[a,b]];while(st.length){const[x,y]=st.pop();if(!x&&!y)continue;if(!x||!y||x.label!==y.label)return false;st.push([x.left,y.left],[x.right,y.right])}return true}
+function exportTree(r){if(!r)return"[]";const out=[],q=[r];let n=0;
+ for(let i=0;i<q.length;i++){const x=q[i];if(!x){out.push("null");continue}
+  chk(x.label);n++;out.push(x.label);q.push(x.left,x.right)}
+ if(n>MAXN)throw Error("Tree has more than 2000 nodes");
+ while(out.length&&out[out.length-1]==="null")out.pop();
+ return"["+out.join(",")+"]\n"}
+function restoreTree(text){const F=m=>new FormatError(m);
+ const t=text.trim();if(!t)throw F("Empty file: expected an array like [A,B,C,null,D]");
+ let inner;
+ if(t[0]==="["){if(t[t.length-1]!=="]")throw F("Missing closing ']' – the array is truncated or incomplete");inner=t.slice(1,-1).trim()}
+ else if(/[\[\]]/.test(t))throw F("Array must start with '['");
+ else inner=t;
+ if(inner==="")return null;
+ const toks=(inner.includes(",")?inner.split(","):inner.split(/\s+/)).map((x,i)=>{x=x.trim();
+  if(x==="")throw F(`Entry ${i+1} is empty (stray or doubled comma)`);
+  if(/^(".*"|'.*')$/.test(x)&&x.length>1)x=x.slice(1,-1);
+  if(/^(null|none|nil|#)$/i.test(x))return null;
+  if(/[\[\]\s"']/.test(x))throw F(`Entry ${i+1} ("${x.slice(0,20)}") contains a bracket, quote or space`);
+  if(x.length>MAXL)throw F(`Entry ${i+1}: label longer than ${MAXL} characters`);
+  return x});
+ if(toks.length>2*MAXN+1)throw F("Too many entries (limit is 2000 nodes)");
+ if(toks[0]===null)throw F("Entry 1: the root cannot be null");
+ const root=N(toks[0]),q=[root];let idx=1,made=1;
+ for(let qi=0;qi<q.length&&idx<toks.length;qi++){const p=q[qi];
+  for(const side of["left","right"]){if(idx>=toks.length)break;const v=toks[idx++];
+   if(v!==null){const c=N(v);p[side]=c;q.push(c);made++}}}
+ if(made>MAXN)throw F(`More than ${MAXN} nodes`);
+ for(let i=idx;i<toks.length;i++)if(toks[i]!==null)throw F(`Entry ${i+1} ("${toks[i]}") has no parent: every real node needs a parent earlier in the array`);
+ return root}
+
+// ---- UI ----
+let tree=null,original=null;const $=id=>document.getElementById(id);
+const say=(id,t,c)=>{$(id).textContent=t;$(id).className="msg "+(c||"")};
+function drawBlocks(r,id){const svg=$(id||"blocks"),NS="http://www.w3.org/2000/svg";svg.textContent="";svg.setAttribute("width",0);svg.setAttribute("height",0);if(!r)return;
+ const pos=new Map(),stack=[];let xi=0,maxd=0,cur=r,cd=0;
+ while(stack.length||cur){while(cur){stack.push([cur,cd]);cur=cur.left;cd++}const[n,dd]=stack.pop();pos.set(n,[xi++,dd]);if(dd>maxd)maxd=dd;cur=n.right;cd=dd+1}
+ const W=xi*76+20,H=(maxd+1)*70+20;svg.setAttribute("width",W);svg.setAttribute("height",H);svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+ const el=(tag,a,txt,par)=>{const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;(par||svg).appendChild(e);return e};
+ const P=n=>{const[x,d]=pos.get(n);return[10+x*76+32,10+d*70+15]};
+ for(const n of pos.keys()){const[px,py]=P(n);
+  for(const[c,dx]of[[n.left,-14],[n.right,14]]){
+   if(c){const[cx,cy]=P(c);el("line",{class:"ln",x1:px,y1:py+15,x2:cx,y2:cy-15,style:"stroke:var(--mut)","stroke-width":1.5})}
+   else{el("line",{class:"ln",x1:px+dx/2,y1:py+15,x2:px+dx*1.6,y2:py+38,style:"stroke:var(--mut)","stroke-dasharray":"3 3"});el("text",{x:px+dx*1.6,y:py+50,"text-anchor":"middle",style:"fill:var(--mut)","font-size":11},"-")}}}
+ for(const n of pos.keys()){const[px,py]=P(n),d=pos.get(n)[1];
+  const g=el("g",{class:"nd",style:`animation-delay:${d*0.09}s`});
+  el("rect",{x:px-30,y:py-15,width:60,height:30,rx:6,style:"fill:var(--node);stroke:var(--acc)","stroke-width":1.5},null,g);
+  el("text",{x:px,y:py+4,"text-anchor":"middle",style:"fill:var(--ink);pointer-events:none","font-size":12},n.label.length>7?n.label.slice(0,6)+"…":n.label,g);
+  const t=document.createElementNS(NS,"title");t.textContent=n.label;g.appendChild(t)}}
+function show(v,t,r){if(v==="vr")drawBlocks(r);$(v).textContent=render(r);$(t).textContent=r?`preorder [${pre(r)}]\ninorder  [${ino(r)}]`:"";$(t).style.whiteSpace="pre-wrap"}
+function parseInput(t){const ls=t.replace(/\r\n/g,"\n").split("\n").map(x=>x.trim()).filter(Boolean);
+ return ls.length>1&&/^\S+ [LR] \S+$/.test(ls[1])?buildEdges(t):restoreTree(t)}
+function showBuild(r){$("vbuild").textContent=render(r)+(r?`\npreorder [${pre(r)}]\ninorder  [${ino(r)}]`:"");drawBlocks(r,"blocksB")}
+function showExp(r){$("vexp").textContent=render(r)+(r?`\npreorder [${pre(r)}]\ninorder  [${ino(r)}]`:"");drawBlocks(r,"blocksE")}
+function setTree(r){drawBlocks(null);showBuild(r);tree=r;original=r;show("vo","to",r);$("vr").textContent="(none yet)";$("tr").textContent="";say("verdict","Tree built. Export it next.")}
+function doBuild(){try{setTree(parseInput($("edges").value));say("m1",`Built ${pre(tree).length} nodes.`,"ok")}catch(e){say("m1",e.message,"bad")}}
+let tb;$("edges").addEventListener("input",()=>{clearTimeout(tb);tb=setTimeout(()=>{if($("edges").value.trim())doBuild()},500)});
+const ex=t=>{$("edges").value=t;doBuild()};
+$("bEx1").onclick=()=>ex("[A,B,C,null,D]");
+$("bEx2").onclick=()=>{const P="Ada Bram Cleo Dov Eve Finn Gus Hana Ivo Jun Kai Lena Milo Nora Omar Pia Quin Rhea Sven Tara Uri Vera Wren Xan Yara Zed Aldo Bea Cyrus Dara".split(" ").sort(()=>Math.random()-.5);
+ const n=5+Math.floor(Math.random()*14),skew=Math.random(),root=N(P[0]),ns=[root];
+ for(let i=1;i<n;i++){let p,k;do{const j=skew<.35?ns.length-1-Math.floor(Math.random()*Math.min(3,ns.length)):Math.floor(Math.random()*ns.length);p=ns[j];k=Math.random()<.5?"left":"right"}while(p[k]);const c=N(P[i]);p[k]=c;ns.push(c)}
+ ex(exportTree(root).trim())};
+$("bExport").onclick=()=>{if(!tree&&!original)return say("m2","Build a tree first.","bad");try{$("exp").value=exportTree(tree||original);say("m2","Exported.","ok")}catch(e){say("m2",e.message,"bad")}};
+$("bClear").onclick=()=>{tree=null;$("vo").textContent="(in-memory tree cleared)";$("to").textContent="";say("m2","In-memory tree cleared. Only the text remains.","ok")};
+$("bRestore").onclick=()=>{try{const r=restoreTree($("exp").value);tree=r;show("vr","tr",r);showExp(r);
+ const ok=original?same(original,r):null;
+ say("m2",`Tree created from the text: ${pre(r).length} nodes.`,"ok");
+ say("verdict",ok===null?"Restored (no original in memory to compare).":ok?"✔ Restored tree is identical to the original: same labels, same links, same empty branches.":"✖ Restored tree differs from the original.",ok===false?"bad":"ok");
+ if(original){show("vo","to",original)}}
+ catch(e){drawBlocks(null);drawBlocks(null,"blocksE");$("vexp").textContent="(rejected – see the message above)";$("vr").textContent="(rejected)";$("tr").textContent="";say("m2","Rejected: "+e.message,"bad");say("verdict","Damaged export detected – nothing was restored.","bad")}};
+let tm;$("exp").addEventListener("input",()=>{clearTimeout(tm);tm=setTimeout(()=>{if($("exp").value.trim())$("bRestore").click()},500)});
+$("bDownload").onclick=async()=>{
+ const src=tree?exportTree(tree):$("exp").value;
+ if(!src)return say("m2","Nothing to download yet – build or restore a tree first.","bad");
+ try{restoreTree(src)}catch(e){return say("m2","Not downloaded – the export is invalid: "+e.message,"bad")}
+ let dl=null;try{dl=await claude.use("downloads")}catch(e){}
+ if(dl){try{await dl.save({filename:"museum_tree_export.txt",data:src});say("m2","Saved museum_tree_export.txt","ok")}catch(e){say("m2","Download "+(e.code=="declined"?"cancelled.":"failed: "+(e.message||e.code)),"bad")}}
+ else{try{await navigator.clipboard.writeText(src);say("m2","Downloads unavailable here – export text copied to clipboard instead.","ok")}catch(e){say("m2","Downloads unavailable here – copy the text from the box above.","bad")}}};
+function readText(f){return f.text?f.text():new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>no(r.error);r.readAsText(f)})}
+async function loadFile(f,tg){if(!f)return;let t;say("m1","Reading "+f.name+"…");
+ try{t=await readText(f)}catch(x){return say("m1","Could not read "+f.name+": "+(x&&x.message||x),"bad")}
+ if(!t.trim())return say("m1",f.name+" is empty.","bad");
+ if(tg==="restore"){tree=null;original=null;$("vo").textContent="(none – tree loaded from file "+f.name+")";$("to").textContent="";$("exp").value=t;$("bRestore").click();return}
+ try{setTree(parseInput(t));say("m1",`Imported ${f.name}: built a tree with ${pre(tree).length} nodes.`,"ok")}
+ catch(e){say("m1","Could not import "+f.name+": "+e.message,"bad")}}
+document.querySelectorAll(".fin").forEach(i=>i.onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return say("m1","No file was received from the file picker.","bad");loadFile(f,i.dataset.t).catch(x=>say("m1","Import failed: "+(x&&x.message||x),"bad")).finally(()=>{e.target.value=""})});
+addEventListener("dragover",e=>{e.preventDefault();document.body.classList.add("drop")});
+addEventListener("dragleave",e=>{if(!e.relatedTarget)document.body.classList.remove("drop")});
+addEventListener("drop",e=>{e.preventDefault();document.body.classList.remove("drop");const f=e.dataTransfer.files[0];if(f)loadFile(f,"build").catch(x=>say("m1","Import failed: "+(x&&x.message||x),"bad"))});
+const edit=f=>()=>{const t=$("exp").value.trim();if(!t)return say("m2","Export first.","bad");$("exp").value=f(t)};
+$("dRoot").onclick=edit(t=>t.replace(/^\[\s*[^,\]]*/,"[null"));
+$("dBracket").onclick=edit(t=>t.replace(/\]$/,""));
+$("dEmpty").onclick=edit(t=>t.includes(",")?t.replace(",",",,"):t.replace("]",",]"));
+$("dSpace").onclick=edit(t=>t.replace(/^\[\s*([^,\]]+)/,"[$1 x"));
+
+// ---- self tests ----
+$("bTest").onclick=()=>{const out=[];let pass=0,fail=0;
+ const t=(name,fn)=>{try{fn();pass++;out.push("PASS "+name)}catch(e){fail++;out.push("FAIL "+name+": "+e.message)}};
+ const rt=r=>{const x=restoreTree(exportTree(r));if(!same(r,x))throw Error("shape differs")};
+ const eq=(a,b)=>{if(a!==b)throw Error(JSON.stringify(a)+" != "+JSON.stringify(b))};
+ const rej=(s,f)=>{try{restoreTree(s)}catch(e){if(e instanceof FormatError&&e.message.toLowerCase().includes(f))return;throw Error("wrong error: "+e.message)}throw Error("accepted bad input")};
+ t("spec example → [A,B,C,null,D]",()=>{const r=N("A",N("B",null,N("D")),N("C"));eq(exportTree(r),"[A,B,C,null,D]\n");rt(r);const x=restoreTree("[A,B,C,null,D]");
+  eq(pre(x)+"","A,B,D,C");eq(ino(x)+"","B,D,A,C")});
+ t("array → tree",()=>eq(exportTree(restoreTree("[A,B,null,C,D]")),"[A,B,null,C,D]\n"));
+ t("empty / single",()=>{eq(exportTree(null),"[]\n".trim()+"");eq(restoreTree("[]"),null);rt(N("x"))});
+ t("left-only ≠ right-only",()=>{eq(exportTree(N("A",N("B"))),"[A,B]\n");eq(exportTree(N("A",null,N("B"))),"[A,null,B]\n")});
+ t("gaps in the middle",()=>{const r=N("A",N("B",null,N("D")),N("C",N("E"),null));eq(exportTree(r),"[A,B,C,null,D,E]\n");rt(r)});
+ t("whitespace / newlines / quotes ok",()=>{const x=restoreTree(' [ "A" ,\n B , null,\n C ] ');eq(pre(x)+"","A,B,C")});
+ t("2000-node chains",()=>{for(const k of["left","right"]){const root=N("0");let c=root;for(let i=1;i<2000;i++){const n=N(""+i);c[k]=n;c=n}rt(root)}});
+ t("random trees",()=>{for(const n of[5,50,300,2000]){const ns=[N("0")];for(let i=1;i<n;i++){let p,k;do{p=ns[Math.floor(Math.random()*ns.length)];k=Math.random()<.5?"left":"right"}while(p[k]);const c=N(""+i);p[k]=c;ns.push(c)}rt(ns[0])}});
+ t("rejects bad labels on export",()=>{for(const l of["a b","a,b","null","[x]"]){try{exportTree(N(l))}catch(e){continue}throw Error("accepted "+l)}});
+ t("empty file",()=>rej("  \n","empty"));
+ t("no opening bracket",()=>rej("A,B,C]","'['"));
+ t("missing closing bracket",()=>rej("[A,B,C","closing"));
+ t("empty entry",()=>rej("[A,,B]","empty"));
+ t("null root",()=>rej("[null,A]","root"));
+ t("orphan entry",()=>rej("[A,null,null,X]","parent"));
+ t("space in label",()=>rej("[A,B C]","space"));
+ t("nested bracket",()=>rej("[A,[B]]","bracket"));
+ const p=$("tests");p.style.display="block";p.textContent=out.join("\n")+`\n\n${pass} passed, ${fail} failed`};
+ex("[A,B,C,null,D]");
+</script></main></body></html>
