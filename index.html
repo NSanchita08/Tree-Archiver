@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TreeVault</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<header class="top">
+  <h1>TreeVault</h1>
+  <p class="tagline">The Museum's Vanishing Family Trees</p>
+  <nav>
+    <button data-tab="dashboard" class="active">Dashboard</button>
+    <button data-tab="build">Build and archive</button>
+    <button data-tab="restore">Restore archive</button>
+    <button data-tab="integrity">Integrity check</button>
+  </nav>
+</header>
+
+<main>
+  <section id="dashboard" class="panel active">
+    <div class="glass">
+      <p>TreeVault seals a binary tree into a lossless text archive and restores it exactly. Every missing child is written down, so nothing is lost on the way back.</p>
+      <div class="stats">
+        <div><span id="stat-nodes">0</span><small>Total nodes</small></div>
+        <div><span id="stat-height">0</span><small>Tree height</small></div>
+        <div><span id="stat-status">Empty</span><small>Current tree</small></div>
+      </div>
+      <div class="actions">
+        <button data-tab="build">Create tree</button>
+        <button data-tab="build">Import tree</button>
+        <button data-tab="restore">Restore archive</button>
+        <button id="demo">Run demo</button>
+      </div>
+      <pre id="demo-log" class="code" hidden></pre>
+    </div>
+  </section>
+
+  <section id="build" class="panel">
+    <div class="glass">
+      <label for="input">Level-order array or text</label>
+      <textarea id="input" rows="3" placeholder='["A", "B", "C", null, "D"]  or  A B C null D'></textarea>
+      <div class="actions">
+        <input type="file" accept=".txt" data-target="#input" aria-label="Upload tree file">
+        <button id="create">Create tree</button>
+      </div>
+      <p id="build-error" class="error" hidden></p>
+    </div>
+
+    <div class="glass">
+      <h2>Tree</h2>
+      <p class="muted">Blue edges go left and purple edges go right. Dashed stubs mark missing children.</p>
+      <div class="actions">
+        <button id="zoom-out" class="ghost" aria-label="Zoom out">−</button>
+        <button id="zoom-in" class="ghost" aria-label="Zoom in">+</button>
+        <button id="clear" class="ghost">Clear tree from memory</button>
+      </div>
+      <div id="canvas"><svg id="tree" role="img" aria-label="Binary tree"></svg></div>
+    </div>
+
+    <div id="traversals" class="cards"></div>
+
+    <div class="glass">
+      <h2>Archive</h2>
+      <pre id="archive" class="code"></pre>
+      <button id="download" class="ghost">Download .txt</button>
+    </div>
+  </section>
+
+  <section id="restore" class="panel">
+    <div class="glass">
+      <textarea id="restore-input" rows="4" placeholder="Paste archive text"></textarea>
+      <div class="actions">
+        <input type="file" accept=".txt" data-target="#restore-input" aria-label="Upload archive file">
+        <button id="restore-btn">Restore archive</button>
+      </div>
+      <p id="restore-error" class="error" hidden></p>
+    </div>
+    <div class="glass" id="verify-card" hidden></div>
+    <div class="glass"><div class="canvas"><svg id="restored-tree" role="img" aria-label="Restored tree"></svg></div></div>
+  </section>
+
+  <section id="integrity" class="panel">
+    <div class="glass">
+      <h2>Archive Integrity Check</h2>
+      <p class="muted">Checks the text without changing it. Suggested fixes are shown, never applied.</p>
+      <textarea id="check-input" rows="4" placeholder="Paste possibly damaged archive text"></textarea>
+      <div class="actions">
+        <input type="file" accept=".txt" data-target="#check-input" aria-label="Upload damaged archive file">
+        <button id="check-btn">Run validation</button>
+      </div>
+      <p id="check-result" hidden></p>
+    </div>
+  </section>
+</main>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
